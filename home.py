@@ -1,13 +1,9 @@
-# Import model from Price_Predictor
-# Create a main window
 # Create separate windows for available stocks, owned stocks, user bank account info
-# Implement password protection, end-to-end encryption
 
 import sqlite3
 import customtkinter as ctk
 from cryptography.fernet import Fernet
 from encryption_key import load_key
-from password_encryption import encrypt_password, decrypt_password
 from signup import signup
 from login import login
 
@@ -50,5 +46,5 @@ def home():
     root.mainloop()
 
 # Uncomment to test signup or login functionality
-# signup()
-login(home)
+# signup(home)
+# login(home)
