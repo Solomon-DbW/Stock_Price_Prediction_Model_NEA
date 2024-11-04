@@ -1,8 +1,7 @@
 import customtkinter as ctk
 from price_predictor import StockPricePredictor 
-# from home import StockButton
-# import logging
 import threading
+from plyer import notification
 
 def view_available_stocks_predictions(StockButton, logger, homeroot, home):
     homeroot.destroy()
@@ -107,6 +106,16 @@ def view_available_stocks_predictions(StockButton, logger, homeroot, home):
             ctk.CTkLabel(pred_price_frame,
                 text=f"Predicted Price: ${next_price:.2f}",
                 font=("Arial", 14)).pack(side="left", padx=5)
+
+            # Notifying user on predictions
+            if percentage_change > 0:
+                notification.notify(title="Stock Price Prediction", 
+                    message=f"Stock {ticker} is predicted to go up by ${price_change:.2f} ({percentage_change:.2f}%).",
+                    timeout=20)
+            else:
+                notification.notify(title="Stock Price Prediction", 
+                    message=f"Stock {ticker} is predicted to go down by ${price_change:.2f} ({percentage_change:.2f}%).",
+                    timeout=20)
             
             # Change indicators
             change_frame = ctk.CTkFrame(stock_frame)

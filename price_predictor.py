@@ -7,7 +7,7 @@ from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import LSTM, Dense, Dropout
 from tensorflow.keras.optimizers import Adam
 from datetime import datetime, timedelta
-import seaborn as sns
+# import seaborn as sns
 
 class StockPricePredictor:
     def __init__(self, stock_symbol: str, prediction_days: int = 60):
@@ -27,7 +27,7 @@ class StockPricePredictor:
         self.x_train = None
         self.y_train = None
         
-    def fetch_data(self, start_date: str = '2015-01-01'):
+    def fetch_data(self, start_date: str = '2022-01-01'):
         """
         Fetch stock data from Yahoo Finance.
         
@@ -108,6 +108,49 @@ class StockPricePredictor:
         
         return actual_prediction, price_change, percentage_change
     
+    # def predict_increase_date(self, max_days=60):
+    #     """
+    #     Estimate the date when the stock price will next increase.
+        
+    #     Args:
+    #         max_days: Maximum number of future days to search for a price increase.
+        
+    #     Returns:
+    #         increase_date: Date when an increase is expected, or None if no increase is found.
+    #         predicted_price: Predicted price on the increase date.
+    #         price_change: Price difference from the current price to the predicted increase price.
+    #         percentage_change: Percentage change from the current price to the predicted increase price.
+    #     """
+    #     # Get the last 60 days of scaled data to initialize the prediction input
+    #     last_60_days = self.scaled_data[-self.prediction_days:]
+    #     next_day_input = np.reshape(last_60_days, (1, self.prediction_days, 1))
+
+    #     # Get the current price and date
+    #     current_price = self.data['Close'].iloc[-1]
+    #     current_date = self.data.index[-1]  # Assuming the data index is a DateTimeIndex
+
+    #     # Iterate for a maximum of `max_days` to search for a price increase
+    #     for day in range(1, max_days + 1):
+    #         # Predict the next day's price
+    #         prediction = self.model.predict(next_day_input)
+    #         predicted_price = self.scaler.inverse_transform(prediction)[0][0]
+
+    #         # Check if the predicted price is higher than the current price
+    #         if predicted_price > current_price:
+    #             increase_date = current_date + timedelta(days=day)
+    #             price_change = predicted_price - current_price
+    #             percentage_change = (price_change / current_price) * 100
+                
+    #             return increase_date, predicted_price, price_change, percentage_change
+
+    #         # Update for the next prediction day
+    #         current_price = predicted_price  # Update current price to the predicted one
+    #         last_60_days = np.append(last_60_days[1:], self.scaler.transform([[predicted_price]]), axis=0)
+    #         next_day_input = np.reshape(last_60_days, (1, self.prediction_days, 1))
+
+    #     # Return None if no increase is found within max_days
+    #     return None, None, None, None
+
     def evaluate_model(self):
         """Evaluate model accuracy using recent predictions."""
         # Use last 30 days for testing
@@ -166,38 +209,20 @@ class StockPricePredictor:
         plt.grid(True)
         plt.show()
 
-# Get user input
-# stock_symbol = input("Enter stock symbol (e.g., AAPL): ").upper()
+# predictor = StockPricePredictor(stock_symbol="AAPL")
 
-# Initialize predictor
-# predictor = StockPricePredictor(stock_symbol)
+# # Fetch the latest data
+# if predictor.fetch_data(start_date='2023-01-01'):  # Adjust start_date as needed
+#     predictor.prepare_data()
+#     predictor.build_model()
+#     predictor.train_model()
 
-# Fetch and prepare data
-# if not predictor.fetch_data():
-#     print("Failed to fetch data. Please check the stock symbol and try again.")
-#     return
-    
-# predictor.prepare_data()
+# # Predict when the price will increase
+# increase_date, predicted_price, price_change, percentage_change = predictor.predict_increase_date(max_days=60)
 
-# Build and train model
-# predictor.build_model()
-# history = predictor.train_model()
-
-# Make prediction for next day
-# next_price, price_change, percentage_change = predictor.predict_next_day()
-# print("\nPrediction Results:")
-# print(f"Current Price: ${predictor.data['Close'].iloc[-1]:.2f}")
-# print(f"Predicted Next Day Price: ${next_price:.2f}")
-# print(f"Predicted Change: ${price_change:.2f} ({percentage_change:.2f}%)")
-
-# Evaluate model
-# evaluation = predictor.evaluate_model()
-# print("\nModel Accuracy Metrics:")
-# print(f"Mean Squared Error: {evaluation['mse']:.2f}")
-# print(f"Root Mean Squared Error: {evaluation['rmse']:.2f}")
-# print(f"Mean Absolute Error: {evaluation['mae']:.2f}")
-
-# Plot results
-# predictor.plot_predictions(evaluation)
-# predictor.plot_training_history(history)
+# if increase_date:
+#     print(f"Price is expected to increase on {increase_date.date()} to {predicted_price:.2f}")
+#     print(f"Change: {price_change:.2f} ({percentage_change:.2f}%)")
+# else:
+#     print("No price increase expected within the specified future days.")
 
