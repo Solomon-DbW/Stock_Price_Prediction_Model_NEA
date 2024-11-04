@@ -22,9 +22,9 @@ def login(home):
     def submit_login():
         username = username_entry.get()
         password = password_entry.get()
-        conn = sqlite3.connect("users.db")
+        conn = sqlite3.connect("users_and_details.db")
         cursor = conn.cursor()
-        cursor.execute("CREATE TABLE IF NOT EXISTS users (username TEXT, password TEXT)")
+        # cursor.execute("CREATE TABLE IF NOT EXISTS users (username TEXT, password TEXT)")
         cursor.execute("SELECT password FROM users WHERE username=?", (username,))
         result = cursor.fetchone()
         if result:

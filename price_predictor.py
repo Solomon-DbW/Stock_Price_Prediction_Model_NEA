@@ -167,37 +167,37 @@ class StockPricePredictor:
         plt.show()
 
 # Get user input
-stock_symbol = input("Enter stock symbol (e.g., AAPL): ").upper()
+# stock_symbol = input("Enter stock symbol (e.g., AAPL): ").upper()
 
 # Initialize predictor
-predictor = StockPricePredictor(stock_symbol)
+# predictor = StockPricePredictor(stock_symbol)
 
 # Fetch and prepare data
 # if not predictor.fetch_data():
 #     print("Failed to fetch data. Please check the stock symbol and try again.")
 #     return
     
-predictor.prepare_data()
+# predictor.prepare_data()
 
 # Build and train model
-predictor.build_model()
-history = predictor.train_model()
+# predictor.build_model()
+# history = predictor.train_model()
 
 # Make prediction for next day
-next_price, price_change, percentage_change = predictor.predict_next_day()
-print("\nPrediction Results:")
-print(f"Current Price: ${predictor.data['Close'].iloc[-1]:.2f}")
-print(f"Predicted Next Day Price: ${next_price:.2f}")
-print(f"Predicted Change: ${price_change:.2f} ({percentage_change:.2f}%)")
+# next_price, price_change, percentage_change = predictor.predict_next_day()
+# print("\nPrediction Results:")
+# print(f"Current Price: ${predictor.data['Close'].iloc[-1]:.2f}")
+# print(f"Predicted Next Day Price: ${next_price:.2f}")
+# print(f"Predicted Change: ${price_change:.2f} ({percentage_change:.2f}%)")
 
 # Evaluate model
-evaluation = predictor.evaluate_model()
-print("\nModel Accuracy Metrics:")
-print(f"Mean Squared Error: {evaluation['mse']:.2f}")
-print(f"Root Mean Squared Error: {evaluation['rmse']:.2f}")
-print(f"Mean Absolute Error: {evaluation['mae']:.2f}")
+# evaluation = predictor.evaluate_model()
+# print("\nModel Accuracy Metrics:")
+# print(f"Mean Squared Error: {evaluation['mse']:.2f}")
+# print(f"Root Mean Squared Error: {evaluation['rmse']:.2f}")
+# print(f"Mean Absolute Error: {evaluation['mae']:.2f}")
 
 # Plot results
-predictor.plot_predictions(evaluation)
-predictor.plot_training_history(history)
+# predictor.plot_predictions(evaluation)
+# predictor.plot_training_history(history)
 

@@ -1,6 +1,6 @@
 import sqlite3
 import customtkinter as ctk
-from password_encryption import encrypt_password, decrypt_password 
+from password_encryption import encrypt_password
 
 def signup(home):
     root = ctk.CTk()
@@ -27,22 +27,28 @@ def signup(home):
         username = username_entry.get()
         password = encrypt_password(password_entry.get())  # Encrypt password
 
-        conn = sqlite3.connect("users.db")
+        conn = sqlite3.connect("users_and_details.db")
         cursor = conn.cursor()
-        cursor.execute("CREATE TABLE IF NOT EXISTS users (username TEXT, password TEXT)")
-        
+        cursor.execute("""
+        CREATE TABLE IF NOT EXISTS users (
+            userid INTEGER PRIMARY KEY AUTOINCREMENT,
+            username TEXT UNIQUE,
+            password TEXT
+            )
+        """)
         # Check if username already exists
         cursor.execute("SELECT * FROM users WHERE username = ?", (username,))
         if cursor.fetchone() is not None:
             ctk.CTkLabel(root, text="Username already taken.").place(relx=0.5, rely=0.4, anchor=ctk.CENTER)
+
         else:
             cursor.execute("INSERT INTO users (username, password) VALUES (?, ?)", (username, password))
             conn.commit()
             ctk.CTkLabel(root, text="Signup successful!").place(relx=0.5, rely=0.4, anchor=ctk.CENTER)
 
-        if cursor.fetchone() is None:
             cursor.close()
             conn.close()
+
             root.destroy()
             home()
 

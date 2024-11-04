@@ -1,0 +1,24 @@
+users (
+            userid INTEGER PRIMARY KEY AUTOINCREMENT,
+            username TEXT UNIQUE,
+            password TEXT
+        )
+
+bankcards (
+            cardid INTEGER PRIMARY KEY AUTOINCREMENT,
+            userid INTEGER,
+	    card_holder_name TEXT,
+            card_number TEXT,
+            expiration_date TEXT,
+	    card_type TEXT,
+	    cvv_code TEXT
+            FOREIGN KEY (userid) REFERENCES users(userid)
+        )
+
+stocks (
+            stockid INTEGER PRIMARY KEY AUTOINCREMENT,
+            userid INTEGER,
+            stock_symbol TEXT,
+            quantity INTEGER,
+            FOREIGN KEY (userid) REFERENCES users(userid)
+        )
