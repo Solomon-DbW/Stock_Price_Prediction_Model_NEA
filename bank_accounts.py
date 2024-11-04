@@ -69,11 +69,11 @@ class BankAccountManager:
         self.root.geometry("800x600")
         self.root.title("Manage Bank Cards")
         self.setup_gui()
-        homeroot.destroy()
+        # homeroot.destroy()
 
 
     def return_home(self):
-        self.root.destroy()
+        # self.root.destroy()
         self.home()
 
     def setup_gui(self):
