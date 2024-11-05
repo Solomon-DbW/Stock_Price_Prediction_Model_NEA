@@ -1,6 +1,10 @@
-import sqlite3
 import customtkinter as ctk
+from sqlalchemy.orm.decl_api import DeclarativeBase
 from password_encryption import encrypt_password
+from sqlalchemy import create_engine, ForeignKey, Column, Integer, String
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker
+from database_manager import User, Base
 
 def signup(home):
     root = ctk.CTk()
@@ -27,33 +31,33 @@ def signup(home):
         username = username_entry.get()
         password = encrypt_password(password_entry.get())  # Encrypt password
 
-        conn = sqlite3.connect("users_and_details.db")
-        cursor = conn.cursor()
-        cursor.execute("""
-        CREATE TABLE IF NOT EXISTS users (
-            userid INTEGER PRIMARY KEY AUTOINCREMENT,
-            username TEXT UNIQUE,
-            password TEXT
-            )
-        """)
+        while not username or not password:
+            ctk.CTkLabel(root, text="Please fill in all fields.").place(relx=0.5, rely=0.4, anchor=ctk.CENTER)
+            return
+
+        engine = create_engine("sqlite:///users_and_details.db")
+        Base.metadata.create_all(bind=engine)
+
+        Session = sessionmaker(bind=engine)
+        session = Session()
+
         # Check if username already exists
-        cursor.execute("SELECT * FROM users WHERE username = ?", (username,))
-        if cursor.fetchone() is not None:
+        existing_user = session.query(User).filter_by(username=username).first()
+        if existing_user:
             ctk.CTkLabel(root, text="Username already taken.").place(relx=0.5, rely=0.4, anchor=ctk.CENTER)
-
         else:
-            cursor.execute("INSERT INTO users (username, password) VALUES (?, ?)", (username, password))
-            conn.commit()
+            user = User(username, password)
+            session.add(user)
+            session.commit()
             ctk.CTkLabel(root, text="Signup successful!").place(relx=0.5, rely=0.4, anchor=ctk.CENTER)
+        
+        results = session.query(User).filter(User.username == "Bill")
+        for result in results:
+            print(result.username, result.password)
+        session.close()
 
-            cursor.close()
-            conn.close()
-
-            root.destroy()
-            home()
 
     signup_button = ctk.CTkButton(root, text="Sign up", command=submit_signup)
     signup_button.place(relx=0.5, rely=0.35, anchor=ctk.CENTER)
     
     root.mainloop()
-

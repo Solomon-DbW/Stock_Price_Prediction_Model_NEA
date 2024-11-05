@@ -182,7 +182,11 @@ def view_available_stocks_predictions(StockButton, logger, homeroot, home):
     left_panel.pack(side="left", fill="y", padx=10, pady=10)
     left_panel.pack_propagate(False)
 
-    return_home_button = ctk.CTkButton(root, text="Return Home", command=lambda:home)
+    def return_home(home):
+        root.destroy()
+        home()
+
+    return_home_button = ctk.CTkButton(root, text="Return Home", command=lambda:return_home(home=home))
     return_home_button.pack()
     # Stock list title
     title_label = ctk.CTkLabel(

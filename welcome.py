@@ -5,7 +5,8 @@ from home import home
 
 root = ctk.CTk()
 
-WIDTH, HEIGHT = 400, 400
+WIDTH = 400
+HEIGHT = 400
 root.geometry(f"{WIDTH}x{HEIGHT}")
 
 welcome_label = ctk.CTkLabel(root, text="Welcome to Forecastr!", font=("Arial", 28))

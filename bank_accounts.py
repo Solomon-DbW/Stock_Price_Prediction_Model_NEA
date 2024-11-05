@@ -1,65 +1,15 @@
 import customtkinter as ctk
-import sqlite3
 # from typing import Optional
 import tkinter as tk
 from tkinter import messagebox
 import re
 from datetime import datetime
-
-class BankAccount:
-    def __init__(self, card_holder_name: str, card_number: str, expiration_date: str, 
-                 card_type: str, cvv_code: str, username: str):
-        self.card_holder_name = card_holder_name
-        self.card_number = card_number
-        self.expiration_date = expiration_date
-        self.card_type = card_type
-        self.cvv_code = cvv_code
-        self.username = username
-
-    def save_card(self) -> bool:
-        try:
-            with sqlite3.connect("users_and_details.db") as conn:
-                cursor = conn.cursor()
-                cursor.execute("""
-                    CREATE TABLE IF NOT EXISTS bankcards (
-                        cardid INTEGER PRIMARY KEY AUTOINCREMENT,
-                        userid INTEGER,
-                        card_holder_name TEXT,
-                        card_number TEXT,
-                        expiration_date TEXT,
-                        card_type TEXT,
-                        cvv_code TEXT,
-                        FOREIGN KEY (userid) REFERENCES users(userid)
-                    )
-                """)
-                
-                cursor.execute("SELECT userid FROM users WHERE username = ?", (self.username,))
-                userid = cursor.fetchone()[0]
-                
-                cursor.execute("""
-                    INSERT INTO bankcards (userid, card_holder_name, card_number, 
-                                         expiration_date, card_type, cvv_code)
-                    VALUES (?, ?, ?, ?, ?, ?)
-                """, (userid, self.card_holder_name, self.card_number,
-                     self.expiration_date, self.card_type, self.cvv_code))
-                conn.commit()
-                return True
-        except sqlite3.Error as e:
-            messagebox.showerror("Database Error", f"Failed to save card: {str(e)}")
-            return False
-
-    @staticmethod
-    def delete_card(card_id: int) -> bool:
-        try:
-            with sqlite3.connect("users_and_details.db") as conn:
-                cursor = conn.cursor()
-                cursor.execute("DELETE FROM bankcards WHERE cardid = ?", (card_id,))
-                conn.commit()
-                return cursor.rowcount > 0
-        except sqlite3.Error as e:
-            messagebox.showerror("Database Error", f"Failed to delete card: {str(e)}")
-            return False
-
+from signup import Card
+from sqlalchemy import create_engine, ForeignKey, Column, Integer, String
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm.decl_api import DeclarativeBase
+from database_manager import Card
 
 class BankAccountManager:
     def __init__(self, home, homeroot):
@@ -156,32 +106,31 @@ class BankAccountManager:
             for widget in self.cards_frame.winfo_children():
                 widget.destroy()
 
-            with sqlite3.connect("users_and_details.db") as conn:
-                cursor = conn.cursor()
-                cursor.execute("""
-                    SELECT b.cardid, u.username, b.card_holder_name, b.card_number, 
-                           b.expiration_date, b.card_type 
-                    FROM bankcards b
-                    JOIN users u ON b.userid = u.userid
-                """)
-                accounts = cursor.fetchall()
+            accounts = session.query(Card).join(User).all()
+            
+            if not accounts:
+                no_cards_label = ctk.CTkLabel(
+                    self.cards_frame,
+                    text="No cards found",
+                    font=("Arial", 14)
+                )
+                no_cards_label.pack(pady=20)
+                return
 
-                if not accounts:
-                    no_cards_label = ctk.CTkLabel(
-                        self.cards_frame,
-                        text="No cards found",
-                        font=("Arial", 14)
-                    )
-                    no_cards_label.pack(pady=20)
-                    return
+            for account in accounts:
+                account_data = (
+                    account.cardid,
+                    account.userid,
+                    account.card_holder_name,
+                    account.card_number,
+                    account.expiration_date,
+                    account.card_type
+                )
+                self.create_card_frame(self.cards_frame, account_data)
 
-                # Create a frame for each card
-                for account in accounts:
-                    self.create_card_frame(self.cards_frame, account)
-
-        except sqlite3.Error as e:
+        except SQLAlchemyError as e:
             messagebox.showerror("Database Error", f"Failed to retrieve accounts: {str(e)}")
-
+   
     def setup_add_card_form(self, parent):
         form_frame = ctk.CTkFrame(parent)
         form_frame.pack(pady=20, padx=20, fill="both", expand=True)
@@ -354,4 +303,3 @@ class BankAccountManager:
 
     def run(self):
         self.root.mainloop()
-

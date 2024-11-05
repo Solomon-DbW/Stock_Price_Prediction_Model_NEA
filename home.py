@@ -1,6 +1,3 @@
-# Create separate windows for available stocks, owned stocks, user bank account info
-
-
 import customtkinter as ctk
 from cryptography.fernet import Fernet
 from encryption_key import load_key
@@ -10,7 +7,7 @@ import logging
 import os
 import yfinance as yf
 from view_available_stocks import view_available_stocks_predictions
-from bank_accounts import BankAccountManager
+# from bank_accounts import BankAccountManager
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'  # Suppress TF logging
 
 # Configure logging
@@ -28,7 +25,7 @@ class StockButton(ctk.CTkButton):
         self.ticker = ticker
         self.company_name = company_name
 
-def home():
+def home(current_user_id=None):
     root = ctk.CTk()
     WIDTH = 1000  # Increased width to accommodate stock list and prediction
     HEIGHT = 800
@@ -40,8 +37,8 @@ def home():
 
 
     # app = BankAccountManager(home=home)
-    bank_accounts_button = ctk.CTkButton(root, text="Manage bank accounts", command=lambda:BankAccountManager(home=home, homeroot=root).run())
-    bank_accounts_button.pack(pady=10)
+    # bank_accounts_button = ctk.CTkButton(root, text="Manage bank accounts", command=lambda:BankAccountManager(home=home, homeroot=root, current_user_id=current_user_id).run())
+    # bank_accounts_button.pack(pady=10)
 
        
     root.mainloop()

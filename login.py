@@ -1,7 +1,6 @@
 import customtkinter as ctk
 import sqlite3
 from password_encryption import encrypt_password, decrypt_password
-# from app import home
 
 def login(home):
     root = ctk.CTk()
@@ -26,14 +25,15 @@ def login(home):
         cursor = conn.cursor()
         # cursor.execute("CREATE TABLE IF NOT EXISTS users (username TEXT, password TEXT)")
         cursor.execute("SELECT password FROM users WHERE username=?", (username,))
-        result = cursor.fetchone()
-        if result:
+        user = cursor.fetchone()
+        if user:
             try:
-                stored_password = decrypt_password(result[0])  # Decrypt stored password
+                stored_password = decrypt_password(user[0])  # Decrypt stored password
                 if stored_password == password:
                     ctk.CTkLabel(root, text="Login successful!").place(relx=0.5, rely=0.4, anchor=ctk.CENTER)
+                    current_user_id = user[0] #Stores the current user's id
                     root.destroy()
-                    home()  # Call home window after login
+                    home(current_user_id)  # Call home window after login
                 else:
                     ctk.CTkLabel(root, text="Incorrect password").place(relx=0.5, rely=0.4, anchor=ctk.CENTER)
             except Exception as e:
