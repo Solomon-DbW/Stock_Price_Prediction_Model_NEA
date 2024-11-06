@@ -7,7 +7,8 @@ import logging
 import os
 import yfinance as yf
 from view_available_stocks import view_available_stocks_predictions
-# from bank_accounts import BankAccountManager
+from bank_accounts import BankAccountManager
+
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'  # Suppress TF logging
 
 # Configure logging
@@ -32,16 +33,22 @@ def home(current_user_id=None):
     root.geometry(f"{WIDTH}x{HEIGHT}")
     root.title("Stock Price Predictor")
     
-    view_available_stocks_button = ctk.CTkButton(root, text="View available stocks", command=lambda:view_available_stocks_predictions(StockButton, logger, homeroot=root, home=home))
+    view_available_stocks_button = ctk.CTkButton(
+        root, 
+        text="View available stocks", 
+        command=lambda: view_available_stocks_predictions(StockButton, logger, homeroot=root, home=home)
+    )
     view_available_stocks_button.pack(pady=10)
 
+    bank_accounts_button = ctk.CTkButton(
+        root, 
+        text="Manage bank accounts", 
+        command=lambda: BankAccountManager(home=home, homeroot=root)
+    )
+    bank_accounts_button.pack(pady=10)
 
-    # app = BankAccountManager(home=home)
-    # bank_accounts_button = ctk.CTkButton(root, text="Manage bank accounts", command=lambda:BankAccountManager(home=home, homeroot=root, current_user_id=current_user_id).run())
-    # bank_accounts_button.pack(pady=10)
-
-       
     root.mainloop()
 
 if __name__ == "__main__":
     home()
+
