@@ -94,6 +94,9 @@ class User(Base):
         self.username = username
         self.password = password
 
+    def get_user_id(self):
+        return self.userid
+
     @staticmethod
     def get_user_by_username(username: str):
         """
@@ -105,6 +108,16 @@ class User(Base):
             return user
         except SQLAlchemyError as e:
             print(f"Error retrieving user: {str(e)}")
+            return None
+
+    @staticmethod
+    def get_user_by_id(user_id: int):
+        """Retrieve a user by their ID. Returns None if user not found or if there's an error."""
+        try:
+            user = session.query(User).filter_by(userid=user_id).first()
+            return user
+        except SQLAlchemyError as e:
+            print(f"Error retrieving user by ID: {str(e)}")
             return None
 
 # Card model

@@ -8,10 +8,11 @@ from sqlalchemy.exc import SQLAlchemyError
 
 
 class BankAccountManager:
-    def __init__(self, home, homeroot):
+    def __init__(self, home, homeroot, current_username):
         self.root = ctk.CTk()
         self.homeroot = homeroot
         self.home = home
+        self.current_username = current_username  # Store the current_username
         self.root.geometry("800x600")
         self.root.title("Manage Bank Cards")
         self.setup_gui()
@@ -87,6 +88,9 @@ class BankAccountManager:
                 no_cards_label.pack(pady=20)
                 return
 
+            with open("user_id.txt", "r") as f:
+                current_user_id = f.read().strip()
+
             for account in accounts:
                 account_data = (
                     account.cardid,
@@ -96,7 +100,12 @@ class BankAccountManager:
                     account.expiration_date,
                     account.card_type
                 )
-                self.create_card_frame(self.cards_frame, account_data)
+                
+                # if account.userid == User.get_user_id(self.current_username):
+                if str(account.userid) == current_user_id:
+                    self.create_card_frame(self.cards_frame, account_data)
+
+
 
         except SQLAlchemyError as e:
             messagebox.showerror("Database Error", f"Failed to retrieve accounts: {str(e)}")

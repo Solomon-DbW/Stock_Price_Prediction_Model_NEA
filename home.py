@@ -8,6 +8,7 @@ import os
 import yfinance as yf
 from view_available_stocks import view_available_stocks_predictions
 from bank_accounts import BankAccountManager
+from database_manager import User
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'  # Suppress TF logging
 
@@ -26,7 +27,7 @@ class StockButton(ctk.CTkButton):
         self.ticker = ticker
         self.company_name = company_name
 
-def home(current_user_id=None):
+def home(current_user_name):
     root = ctk.CTk()
     WIDTH = 1000  # Increased width to accommodate stock list and prediction
     HEIGHT = 800
@@ -40,15 +41,16 @@ def home(current_user_id=None):
     )
     view_available_stocks_button.pack(pady=10)
 
+    # current_username = User.get_username(current_user_id)
     bank_accounts_button = ctk.CTkButton(
         root, 
         text="Manage bank accounts", 
-        command=lambda: BankAccountManager(home=home, homeroot=root)
+        command=lambda: BankAccountManager(home=home, homeroot=root, current_username=current_user_name)
     )
     bank_accounts_button.pack(pady=10)
 
     root.mainloop()
 
-if __name__ == "__main__":
-    home()
+# if __name__ == "__main__":
+    # home()
 
