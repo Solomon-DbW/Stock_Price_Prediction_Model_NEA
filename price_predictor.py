@@ -108,49 +108,6 @@ class StockPricePredictor:
         
         return actual_prediction, price_change, percentage_change
     
-    # def predict_increase_date(self, max_days=60):
-    #     """
-    #     Estimate the date when the stock price will next increase.
-        
-    #     Args:
-    #         max_days: Maximum number of future days to search for a price increase.
-        
-    #     Returns:
-    #         increase_date: Date when an increase is expected, or None if no increase is found.
-    #         predicted_price: Predicted price on the increase date.
-    #         price_change: Price difference from the current price to the predicted increase price.
-    #         percentage_change: Percentage change from the current price to the predicted increase price.
-    #     """
-    #     # Get the last 60 days of scaled data to initialize the prediction input
-    #     last_60_days = self.scaled_data[-self.prediction_days:]
-    #     next_day_input = np.reshape(last_60_days, (1, self.prediction_days, 1))
-
-    #     # Get the current price and date
-    #     current_price = self.data['Close'].iloc[-1]
-    #     current_date = self.data.index[-1]  # Assuming the data index is a DateTimeIndex
-
-    #     # Iterate for a maximum of `max_days` to search for a price increase
-    #     for day in range(1, max_days + 1):
-    #         # Predict the next day's price
-    #         prediction = self.model.predict(next_day_input)
-    #         predicted_price = self.scaler.inverse_transform(prediction)[0][0]
-
-    #         # Check if the predicted price is higher than the current price
-    #         if predicted_price > current_price:
-    #             increase_date = current_date + timedelta(days=day)
-    #             price_change = predicted_price - current_price
-    #             percentage_change = (price_change / current_price) * 100
-                
-    #             return increase_date, predicted_price, price_change, percentage_change
-
-    #         # Update for the next prediction day
-    #         current_price = predicted_price  # Update current price to the predicted one
-    #         last_60_days = np.append(last_60_days[1:], self.scaler.transform([[predicted_price]]), axis=0)
-    #         next_day_input = np.reshape(last_60_days, (1, self.prediction_days, 1))
-
-    #     # Return None if no increase is found within max_days
-    #     return None, None, None, None
-
     def evaluate_model(self):
         """Evaluate model accuracy using recent predictions."""
         # Use last 30 days for testing
@@ -183,8 +140,14 @@ class StockPricePredictor:
             'actual_values': actual_values.T
         }
     
-    def plot_predictions(self, evaluation_results):
-        """Plot actual vs predicted prices."""
+    def plot_predictions(self, evaluation_results, save_path='prediction_plot.png'):
+        """
+        Plot actual vs predicted prices and save to file.
+        
+        Args:
+            evaluation_results (dict): Dictionary containing actual_values and predictions
+            save_path (str): Path where to save the plot image file
+        """
         plt.figure(figsize=(12, 6))
         plt.plot(evaluation_results['actual_values'], 
                 label='Actual Prices', color='blue')
@@ -195,8 +158,11 @@ class StockPricePredictor:
         plt.ylabel('Stock Price')
         plt.legend()
         plt.grid(True)
-        plt.show()
         
+        # Save the plot to file
+        plt.savefig(save_path, dpi=300, bbox_inches='tight')
+        plt.close()  # Close the figure to free memory
+       
     def plot_training_history(self, history):
         """Plot training history."""
         plt.figure(figsize=(12, 6))

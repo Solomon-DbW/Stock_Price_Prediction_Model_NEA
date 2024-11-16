@@ -89,7 +89,7 @@ class BankAccountManager:
                 return
 
             with open("user_id.txt", "r") as f:
-                current_user_id = f.read().strip()
+                current_user_id = f.readline().strip()
 
             for account in accounts:
                 account_data = (

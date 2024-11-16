@@ -1,9 +1,10 @@
 import customtkinter as ctk
+from sqlalchemy import lambda_stmt
 # import sqlite3
 from password_encryption import encrypt_password, decrypt_password
 from database_manager import session, User
 
-def login(home):
+def login(home, welcome):
     root = ctk.CTk()
     WIDTH = 400
     HEIGHT = 400
@@ -23,14 +24,6 @@ def login(home):
         username = username_entry.get()
         password = password_entry.get()
 
-        ###### USE SQLALCHEMY ######
-        # conn = sqlite3.connect("users_and_details.db")
-        # cursor = conn.cursor()
-        # cursor.execute("CREATE TABLE IF NOT EXISTS users (username TEXT, password TEXT)")
-        # cursor.execute("SELECT password FROM users WHERE username=?", (username,))
-        # user = cursor.fetchone()
-
-        ###### USE DATABASE MANAGER ######
         user = session.query(User).filter_by(username=username).first()
         if user:
             try:
@@ -38,9 +31,11 @@ def login(home):
                 if stored_password == password:
                     ctk.CTkLabel(root, text="Login successful!").place(relx=0.5, rely=0.4, anchor=ctk.CENTER)
                     current_user_id = user.userid #Stores the current user's id
+                    current_username = user.username
 
                     with open("user_id.txt", "w") as f:
                         f.write(str(current_user_id))
+                        f.write(f"\n{str(current_username)}")
 
                     root.destroy()
                     home(current_user_id)  # Call home window after login
@@ -50,6 +45,13 @@ def login(home):
                 ctk.CTkLabel(root, text=f"Decryption error: {e}").place(relx=0.5, rely=0.4, anchor=ctk.CENTER)
         else:
             ctk.CTkLabel(root, text="Username not found").place(relx=0.5, rely=0.4, anchor=ctk.CENTER)
+
+    def return_to_welcome():
+        root.destroy()
+        welcome()
+
+    back_button = ctk.CTkButton(root, text="Back", command=lambda:return_to_welcome())
+    back_button.place(relx=0.5, rely=0.4, anchor=ctk.CENTER)
 
     login_button = ctk.CTkButton(root, text="Log in", command=submit_login)
     login_button.place(relx=0.5, rely=0.35, anchor=ctk.CENTER)

@@ -3,6 +3,8 @@ from price_predictor import StockPricePredictor
 import threading
 from plyer import notification
 
+import price_predictor
+
 def view_available_stocks_predictions(StockButton, logger, homeroot, home):
     homeroot.destroy()
     root = ctk.CTk()
@@ -133,6 +135,9 @@ def view_available_stocks_predictions(StockButton, logger, homeroot, home):
             separator = ctk.CTkFrame(stock_frame, height=2)
             separator.pack(fill="x", padx=10, pady=10)
             
+            model_evaluation = predictor.evaluate_model()
+            predictor.plot_predictions(model_evaluation)
+            
         except Exception as e:
             logger.error(f"Error processing {ticker}: {str(e)}")
             if 'status_label' in locals():
@@ -183,8 +188,13 @@ def view_available_stocks_predictions(StockButton, logger, homeroot, home):
     left_panel.pack_propagate(False)
 
     def return_home(home):
+        with open("user_id.txt", "r") as f:
+            lines = f.readlines()
+            current_user_id = lines[0].strip()
+            current_username = lines[1].strip()
+
         root.destroy()
-        home()
+        home(current_username)
 
     return_home_button = ctk.CTkButton(root, text="Return Home", command=lambda:return_home(home=home))
     return_home_button.pack()

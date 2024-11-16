@@ -6,7 +6,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from database_manager import User, Base
 
-def signup(home):
+def signup(home,welcome):
     root = ctk.CTk()
     WIDTH = 400
     HEIGHT = 400
@@ -31,7 +31,7 @@ def signup(home):
         username = username_entry.get()
         password = encrypt_password(password_entry.get())  # Encrypt password
 
-        while not username or not password:
+        while len(username) == 0 or len(password_entry.get()) == 0:
             ctk.CTkLabel(root, text="Please fill in all fields.").place(relx=0.5, rely=0.4, anchor=ctk.CENTER)
             return
 
@@ -51,13 +51,17 @@ def signup(home):
             session.commit()
             ctk.CTkLabel(root, text="Signup successful!").place(relx=0.5, rely=0.4, anchor=ctk.CENTER)
         
-        results = session.query(User).filter(User.username == "Bill")
-        for result in results:
-            print(result.username, result.password)
         session.close()
+        home(username)
 
+    def return_to_welcome():
+        root.destroy()
+        welcome()
 
     signup_button = ctk.CTkButton(root, text="Sign up", command=submit_signup)
     signup_button.place(relx=0.5, rely=0.35, anchor=ctk.CENTER)
+
+    return_to_welcome_button = ctk.CTkButton(root, text="Return to welcome", command=lambda: return_to_welcome())
+    return_to_welcome_button.place(relx=0.5, rely=0.4, anchor=ctk.CENTER)
     
     root.mainloop()
