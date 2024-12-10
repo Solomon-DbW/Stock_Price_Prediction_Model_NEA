@@ -1,3 +1,4 @@
+import os
 import numpy as np
 import pandas as pd
 import pickle
@@ -9,7 +10,6 @@ from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import LSTM, Dense, Dropout
 from tensorflow.keras.optimizers import Adam
 from datetime import datetime, timedelta
-# import seaborn as sns
 
 class StockPricePredictor:
     def __init__(self, stock_symbol: str, prediction_days: int = 60):
@@ -30,7 +30,13 @@ class StockPricePredictor:
         self.y_train = None
         
     def load_model(self, model_path):
-        self.model = tensorflow.keras.models.load_model(model_path)
+        if os.path.exists(model_path):
+            self.model = tensorflow.keras.models.load_model(model_path)
+            print("Loaded existing model.")
+            return True
+        else:
+            print("No existing model found.")
+            return False
 
     def fetch_data(self, start_date: str = '2022-01-01'):
         """
@@ -82,6 +88,15 @@ class StockPricePredictor:
                          loss='mean_squared_error')
         
         print("Model built successfully!")
+
+    def build_or_load_model(self, model_path):
+        if not self.load_model(model_path):
+            self.build_model()
+            print("New model built as no existing models found, training will proceed")
+            return False
+        print("Model found, no training")
+        return True
+
         
     def train_model(self, epochs: int = 25, batch_size: int = 32):
         """

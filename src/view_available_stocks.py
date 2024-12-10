@@ -66,7 +66,8 @@ def view_available_stocks_predictions(StockButton, logger, homeroot, home):
                 predictor.build_model()
                 predictor.train_model(epochs=10, batch_size=32)
                 next_price, price_change, percentage_change = predictor.predict_next_day()
-                status_label.configure(text=f"{ticker} - Predicted Price: ${next_price:.2f}")
+                next_price, price_change, percentage_change = next_price.item(), price_change.item(), percentage_change.item()
+                status_label.configure(text=f"Predicted Price: ${next_price:.2f} \nChange in price: {price_change:.2f} \nPercentage change: {percentage_change:.2f}%")
             else:
                 status_label.configure(text=f"Failed to fetch data for {ticker}")
         except Exception as e:
