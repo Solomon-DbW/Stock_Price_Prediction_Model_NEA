@@ -1,9 +1,9 @@
 import os
 import customtkinter as ctk
 import tkinter as tk
+from tkinter import messagebox
 from price_predictor import StockPricePredictor 
 import threading
-from plyer import notification
 
 import price_predictor
 
@@ -38,15 +38,7 @@ def view_available_stocks_predictions(StockButton, logger, homeroot, home):
         ("GE", "General Electric Company")
     ]
 
-    def prediction_notification(ticker, next_price, price_change, percentage_change):
-        popup = tk.Tk()
-        popup.title("!")
-        label = tk.Label(popup, text=f"Prediction for {ticker} completed \nPredicted Price: £{next_price:.2f} \nChange in price: £{price_change:.2f} \nPercentage change: {percentage_change:.2f}%")
-        label.pack()
 
-        B1 = tk.Button(popup, text="Okay", command=popup.destroy)
-        B1.pack()
-        popup.mainloop()
                          
 
     def process_stock(ticker, results_frame):
@@ -83,7 +75,11 @@ def view_available_stocks_predictions(StockButton, logger, homeroot, home):
                                        f"Change in price: £{price_change:.2f} \n"
                                        f"Percentage change: {percentage_change:.2f}%")
 
-                prediction_notification(ticker, next_price, price_change, percentage_change)
+
+                messagebox.showinfo(f"Prediction for {ticker} completed",
+                                    f"""Predicted Price: £{next_price:.2f} 
+Change in price: £{price_change:.2f}
+Percentage change: {percentage_change:.2f}%""")
             else:
                 status_label.configure(text=f"Failed to fetch data for {ticker}")
         except Exception as e:

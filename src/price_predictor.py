@@ -128,6 +128,7 @@ class StockPricePredictor:
         current_price = self.data['Close'].iloc[-1]
         price_change = actual_prediction - current_price
         percentage_change = (price_change / current_price) * 100
+
         
         return actual_prediction, price_change, percentage_change
     
