@@ -17,7 +17,7 @@ class OwnedStocksManager:
         self.home = home
         self.current_username = current_username  # Store the current_username
         self.root.geometry("800x600")
-        self.root.title("Manage Bank Cards")
+        self.root.title("Manage Bank owned stocks")
         self.setup_gui()
 
     def return_home(self):
@@ -25,11 +25,12 @@ class OwnedStocksManager:
 
 
 
-    def add_card(self):
+    def add_owned_stock(self):
         username = self.username_entry.get().strip()
         # stock_name = self.stock_name_entry.get().strip()
         date_purchased = self.date_purchased_entry.get().strip()
-        stock = self.stocks_dropdown.get().split("-")[0]
+        stock_ticker = self.stocks_dropdown.get().split("-")[0]
+        # stock_name = self.stocks_dropdown.get().split("-")[1]
 
         if not username:
             messagebox.showerror("Error", "Username is required")
@@ -39,7 +40,7 @@ class OwnedStocksManager:
             messagebox.showerror("Error", "Purchase date is required")
             return
 
-        if not stock:
+        if not stock_ticker:
             messagebox.showerror("Error", "Stock not selected")
        
         user = User.get_user_by_username(username)
@@ -50,32 +51,32 @@ class OwnedStocksManager:
         owned_stock = OwnedStock(
            userid=user.userid,
            date_purchased=date_purchased,
-           stock_ticker=stock,
+           stock_ticker=stock_ticker,
                 )
 
         if owned_stock.save_stock():
-            messagebox.showinfo("Success", "Card added successfully!")
+            messagebox.showinfo("Success", "Owned stock added successfully!")
             self.view_all_owned_stocks()
             self.clear_form()
         else:
-            messagebox.showerror("Error", "Failed to add card")
+            messagebox.showerror("Error", "Failed to add owned stock")
 
     def delete_owned_stock(self, stock_id: int):
         if messagebox.askyesno("Confirm Delete", "Are you sure you want to delete this stock?"):
             if OwnedStock.delete_stock(stock_id):
-                messagebox.showinfo("Success", "Card deleted successfully!")
+                messagebox.showinfo("Success", "Owned stock deleted successfully!")
                 self.view_all_owned_stocks()
             else:
-                messagebox.showerror("Error", "Failed to delete card")
+                messagebox.showerror("Error", "Failed to delete owned stock")
 
 
     def create_owned_stock_frame(self, parent, stock_data):
-        card_frame = ctk.CTkFrame(parent)
-        card_frame.pack(pady=5, fill="x", expand=True)
+        owned_stock_frame = ctk.CTkFrame(parent)
+        owned_stock_frame.pack(pady=5, fill="x", expand=True)
 
         stock_id, stock_ticker, date_purchased, *_ = stock_data
         
-        info_frame = ctk.CTkFrame(card_frame)
+        info_frame = ctk.CTkFrame(owned_stock_frame)
         info_frame.pack(side="left", padx=10, pady=5, fill="x", expand=True)
         
         labels = [
@@ -88,17 +89,16 @@ class OwnedStocksManager:
             ctk.CTkLabel(info_frame, text=label_text).pack(anchor="w")
 
         delete_btn = ctk.CTkButton(
-            card_frame, text="Delete Stock", command=lambda cid=stock_id: self.delete_owned_stock(cid),
+            owned_stock_frame, text="Delete Stock", command=lambda cid=stock_id: self.delete_owned_stock(cid),
             fg_color="red", hover_color="darkred", width=100
         )
         delete_btn.pack(side="right", padx=10)
 
     def clear_form(self):
         self.username_entry.delete(0, tk.END)
-        self.stock_name_entry.delete(0, tk.END)
+        # self.stock_name_entry.delete(0, tk.END)
         self.date_purchased_entry.delete(0, tk.END)
-        # self.cvv_entry.delete(0, tk.END)
-        # self.card_type_var.set("Visa Debit")
+        # self.owned_stock_type_var.set("Visa Debit")
 
 
     def setup_add_owned_stock_form(self, parent):
@@ -110,10 +110,10 @@ class OwnedStocksManager:
         self.username_entry.pack(pady=(0, 10))
         self.username_entry.insert(0, "james_wilson")
 
-        ctk.CTkLabel(form_frame, text="Stock Name:").pack(pady=(10, 0))
-        self.stock_name_entry = ctk.CTkEntry(form_frame)
-        self.stock_name_entry.pack(pady=(0, 10))
-        self.stock_name_entry.insert(0, "Microsoft")
+        # ctk.CTkLabel(form_frame, text="Stock Name:").pack(pady=(10, 0))
+        # self.stock_name_entry = ctk.CTkEntry(form_frame)
+        # self.stock_name_entry.pack(pady=(0, 10))
+        # self.stock_name_entry.insert(0, "Microsoft")
 
         ctk.CTkLabel(form_frame, text="Date Purchased (DD/MM/YY):").pack(pady=(10, 0))
         self.date_purchased_entry = ctk.CTkEntry(form_frame)
@@ -144,12 +144,12 @@ class OwnedStocksManager:
         "GE-General Electric Company"
     ]
 
-        self.card_type_var = ctk.StringVar(value=("AAPL-Apple Inc."))
-        self.stocks_dropdown = ctk.CTkOptionMenu(form_frame, values=stocks, variable=self.card_type_var)
+        self.owned_stock_type_var = ctk.StringVar(value=("AAPL-Apple Inc."))
+        self.stocks_dropdown = ctk.CTkOptionMenu(form_frame, values=stocks, variable=self.owned_stock_type_var)
         self.stocks_dropdown.pack(pady=(0, 10))
 
 
-        submit_btn = ctk.CTkButton(form_frame, text="Add Card", command=self.add_card)
+        submit_btn = ctk.CTkButton(form_frame, text="Add Owned_stock", command=self.add_owned_stock)
         submit_btn.pack(pady=20)
 
         clear_btn = ctk.CTkButton(form_frame, text="Clear Form", command=self.clear_form)
@@ -165,8 +165,8 @@ class OwnedStocksManager:
             stocks = session.query(OwnedStock).join(User).all()
             
             if not stocks:
-                no_cards_label = ctk.CTkLabel(self.owned_stocks_frame, text="No stocks found", font=("Arial", 14))
-                no_cards_label.pack(pady=20)
+                no_owned_stocks_label = ctk.CTkLabel(self.owned_stocks_frame, text="No stocks found", font=("Arial", 14))
+                no_owned_stocks_label.pack(pady=20)
                 return
 
             with open("user_id.txt", "r") as f:
