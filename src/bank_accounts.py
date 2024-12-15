@@ -18,7 +18,18 @@ class BankAccountManager:
         self.setup_gui()
 
     def return_home(self):
-        self.home()
+        try:
+            with open("user_id.txt", "r") as f:
+                current_user_id = int(f.readline().strip())
+                
+            user = User.get_user_by_id(current_user_id)
+            if user:
+                self.home(current_user_id)
+            else:
+                print("Error: User not found.")
+        except Exception as e:
+            print(f"Error in return_home: {e}")
+
 
     def setup_gui(self):
         self.notebook = ctk.CTkTabview(self.root)
@@ -127,7 +138,7 @@ class BankAccountManager:
         ctk.CTkLabel(form_frame, text="Card Number:").pack(pady=(10, 0))
         self.card_number_entry = ctk.CTkEntry(form_frame)
         self.card_number_entry.pack(pady=(0, 10))
-        self.card_number_entry.insert(0, "4929 0000 0000 6")
+        self.card_number_entry.insert(0, "4532015112830366")
 
         ctk.CTkLabel(form_frame, text="Expiry Date (MM/YY):").pack(pady=(10, 0))
         self.expiration_entry = ctk.CTkEntry(form_frame)

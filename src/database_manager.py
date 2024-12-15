@@ -1,5 +1,5 @@
 from typing import Text
-from sqlalchemy import DateTime, False_, create_engine, Column, Integer, String, ForeignKey, MetaData
+from sqlalchemy import DateTime, False_, Float, create_engine, Column, Integer, String, ForeignKey, MetaData
 from sqlalchemy.orm.decl_api import DeclarativeBase
 from sqlalchemy.orm import sessionmaker, relationship
 from sqlalchemy.exc import SQLAlchemyError
@@ -95,6 +95,17 @@ class User(Base):
         self.username = username
         self.password = password
 
+    @staticmethod
+    def get_username(user_id: int):
+        """Retrieve username by user ID."""
+        try:
+            user = session.query(User).filter_by(userid=user_id).first()
+            return user.username if user else None
+        except SQLAlchemyError as e:
+            print(f"Error retrieving username: {str(e)}")
+            return None
+
+
     def get_user_id(self):
         return self.userid
 
@@ -170,11 +181,12 @@ class Card(Base):
             return False
 
 class OwnedStock(Base):
-    __tablename__ = "Owned_Stocks"
+    __tablename__ = "Owned_Stocks_and_Investments"
     userid = Column(Integer, ForeignKey("users.userid", ondelete="CASCADE"))
     stockid = Column(Integer, primary_key=True, autoincrement=True, unique=True)
     stock_ticker = Column(String)
     date_purchased = Column(String)
+    amount_invested = Column(Float)
 
     def save_stock(self):
         try:

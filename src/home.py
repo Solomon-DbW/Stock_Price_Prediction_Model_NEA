@@ -29,36 +29,46 @@ class StockButton(ctk.CTkButton):
         self.ticker = ticker
         self.company_name = company_name
 
-def home(current_user_name):
+def home(current_user_id):
+    import customtkinter as ctk  # Importing here to ensure the module is available
+
     root = ctk.CTk()
-    WIDTH = 1000  # Increased width to accommodate stock list and prediction
-    HEIGHT = 800
+    WIDTH, HEIGHT = 1000, 800  # Increased size to accommodate more elements
     root.geometry(f"{WIDTH}x{HEIGHT}")
     root.title("Stock Price Predictor")
     
     view_available_stocks_button = ctk.CTkButton(
         root, 
         text="View available stocks", 
-        command=lambda: view_available_stocks_predictions(StockButton, logger, homeroot=root, home=home)
+        command=lambda: view_available_stocks_predictions(
+            StockButton, logger, homeroot=root, home=home
+        )
     )
     view_available_stocks_button.pack(pady=10)
 
-    # current_username = User.get_username(current_user_id)
+    user = User.get_user_by_id(current_user_id)
+    current_username = user.username if user else "Unknown User"
+
     bank_accounts_button = ctk.CTkButton(
         root, 
         text="Manage bank accounts", 
-        command=lambda: BankAccountManager(home=home, homeroot=root, current_username=current_user_name)
+        command=lambda: BankAccountManager(
+            home=home, homeroot=root, current_username=current_username
+        )
     )
     bank_accounts_button.pack(pady=10)
 
     owned_stocks_button = ctk.CTkButton(
-            root,
-            text="Manage owned stocks",
-            command=lambda: OwnedStocksManager(home=home, homeroot=root, current_username=current_user_name)
-            )
+        root,
+        text="Manage owned stocks",
+        command=lambda: OwnedStocksManager(
+            home=home, homeroot=root, current_username=current_username
+        )
+    )
     owned_stocks_button.pack(pady=10)
 
     root.mainloop()
+
 
 # if __name__ == "__main__":
     # home()

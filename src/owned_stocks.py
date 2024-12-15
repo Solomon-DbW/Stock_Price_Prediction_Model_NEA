@@ -21,8 +21,24 @@ class OwnedStocksManager:
         self.setup_gui()
 
     def return_home(self):
-        self.home(self.current_username)
-
+        try:
+            # Read the current user ID from the file
+            with open("user_id.txt", "r") as f:
+                current_user_id = int(f.readline().strip())
+            
+            # Retrieve user details from the database
+            user = User.get_user_by_id(current_user_id)
+            if user:
+                # Pass the current user ID to the home method
+                self.home(current_user_id)
+            else:
+                print("Error: User not found.")
+        except FileNotFoundError:
+            print("Error: 'user_id.txt' not found.")
+        except ValueError:
+            print("Error: Invalid user ID in 'user_id.txt'.")
+        except Exception as e:
+            print(f"Unexpected error: {e}")
 
 
     def add_owned_stock(self):
@@ -31,6 +47,7 @@ class OwnedStocksManager:
         date_purchased = self.date_purchased_entry.get().strip()
         stock_ticker = self.stocks_dropdown.get().split("-")[0]
         # stock_name = self.stocks_dropdown.get().split("-")[1]
+        amount_invested = self.amount_invested_entry.get().strip()
 
         if not username:
             messagebox.showerror("Error", "Username is required")
@@ -42,6 +59,9 @@ class OwnedStocksManager:
 
         if not stock_ticker:
             messagebox.showerror("Error", "Stock not selected")
+
+        if not amount_invested:
+            messagebox.showerror("Error", "Amount invested is required")
        
         user = User.get_user_by_username(username)
         if user is None:
@@ -52,6 +72,7 @@ class OwnedStocksManager:
            userid=user.userid,
            date_purchased=date_purchased,
            stock_ticker=stock_ticker,
+           amount_invested=amount_invested
                 )
 
         if owned_stock.save_stock():
@@ -74,7 +95,7 @@ class OwnedStocksManager:
         owned_stock_frame = ctk.CTkFrame(parent)
         owned_stock_frame.pack(pady=5, fill="x", expand=True)
 
-        stock_id, stock_ticker, date_purchased, *_ = stock_data
+        stock_id, stock_ticker, date_purchased, amount_invested, *_ = stock_data
         
         info_frame = ctk.CTkFrame(owned_stock_frame)
         info_frame.pack(side="left", padx=10, pady=5, fill="x", expand=True)
@@ -82,6 +103,7 @@ class OwnedStocksManager:
         labels = [
             f"Stock ID: {stock_id}",
             f"Stock Ticker: {stock_ticker}",
+            f"Amount invested: £{amount_invested:.2f}",
             f"Date of purchase: {date_purchased}"
         ]
         
@@ -119,6 +141,11 @@ class OwnedStocksManager:
         self.date_purchased_entry = ctk.CTkEntry(form_frame)
         self.date_purchased_entry.pack(pady=(0, 10))
         self.date_purchased_entry.insert(0, "01/12/24")
+
+        ctk.CTkLabel(form_frame, text="Amount invested(£):").pack(pady=(10, 0))
+        self.amount_invested_entry = ctk.CTkEntry(form_frame)
+        self.amount_invested_entry.pack(pady=(0, 10))
+        self.amount_invested_entry.insert(0, "5.00")
 
         ctk.CTkLabel(form_frame, text="Stock Ticker:").pack(pady=(10, 0))
         stocks = [
@@ -177,7 +204,8 @@ class OwnedStocksManager:
                     # stock.userid,
                     stock.stockid,
                     stock.stock_ticker,
-                    stock.date_purchased
+                    stock.date_purchased,
+                    stock.amount_invested
                 )
                 
                 # if account.userid == User.get_user_id(self.current_username):
