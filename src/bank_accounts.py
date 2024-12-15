@@ -71,7 +71,7 @@ class BankAccountManager:
         
         labels = [
             f"Card ID: {card_id}",
-            f"Username: {username}",
+            # f"Username: {username}",
             f"Cardholder: {card_holder}",
             f"Card Number: {masked_card}",
             f"Expiry: {expiry}",
