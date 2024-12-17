@@ -187,6 +187,7 @@ class OwnedStock(Base):
     stock_ticker = Column(String)
     date_purchased = Column(String)
     amount_invested = Column(Float)
+    number_of_shares = Column(Integer)
 
     def save_stock(self):
         try:

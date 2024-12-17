@@ -53,8 +53,8 @@ def signup(home,welcome):
         existing_user = session.query(User).filter_by(username=username).first()
         if existing_user:
             ctk.CTkLabel(root, text="Username already taken.").place(relx=0.5, rely=0.4, anchor=ctk.CENTER)
+            return
         else:
-
             # Saves User Credentials In Database
             user = User(username, password)
             session.add(user)

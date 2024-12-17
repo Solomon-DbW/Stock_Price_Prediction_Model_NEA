@@ -52,28 +52,22 @@ def view_available_stocks_predictions(StockButton, logger, homeroot, home):
 
             predictor = StockPricePredictor(ticker)
 
-            model_path = f"Models/{ticker}_model.keras"
-            if os.path.exists(model_path):
-                status_label.configure(text=f"Loading existing model for {ticker}...")
-                predictor.load_model(model_path)
+            status_label.configure(text=f"Training new model for {ticker}...")
+            if predictor.fetch_data():
+                print(predictor.data.head())
+
+                predictor.prepare_data()
+                predictor.build_model()
+                # predictor.build_or_load_model("Models/WMT_model.keras")
+                history = predictor.train_model(epochs=10, batch_size=32)
+
+                # Ensure the Models directory exists
+                if not os.path.exists("Models"):
+                    os.makedirs("Models")
+
+                # predictor.save_model(model_path)  # Save the newly trained model
             else:
-                # Train a new model
-                status_label.configure(text=f"Training new model for {ticker}...")
-                if predictor.fetch_data():
-                    print(predictor.data.head())
-
-                    predictor.prepare_data()
-                    # predictor.build_model()
-                    predictor.build_or_load_model("Models/WMT_model.keras")
-                    history = predictor.train_model(epochs=10, batch_size=32)
-
-                    # Ensure the Models directory exists
-                    if not os.path.exists("Models"):
-                        os.makedirs("Models")
-
-                    predictor.save_model(model_path)  # Save the newly trained model
-                else:
-                    raise Exception(f"Failed to fetch data for {ticker}")
+                raise Exception(f"Failed to fetch data for {ticker}")
 
             # Predict next day's price
             result = predictor.predict_next_day()
@@ -85,9 +79,9 @@ def view_available_stocks_predictions(StockButton, logger, homeroot, home):
                 #     percentage_change.item(),
                 # )
 
-                ic(next_price)
-                ic(price_change)
-                ic(percentage_change)
+                #ic(next_price)
+                #ic(price_change)
+                #ic(percentage_change)
 
                 status_label.configure(text=f"Predicted Price: £{float(next_price):.2f} \n"
                                        f"Change in price: £{float(price_change):.2f} \n"

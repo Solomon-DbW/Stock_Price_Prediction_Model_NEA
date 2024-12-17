@@ -15,7 +15,7 @@ from datetime import datetime, timedelta
 class StockPricePredictor:
     def __init__(self, stock_symbol: str, prediction_days: int = 60):
         """
-        Initialize the stock price predictor.
+        Initialise the stock price predictor.
         
         Args:
             stock_symbol: Stock ticker symbol (e.g., 'AAPL' for Apple)
@@ -33,7 +33,7 @@ class StockPricePredictor:
     def load_model(self, model_path):
         if os.path.exists(model_path):
             self.model = tensorflow.keras.models.load_model(model_path)
-            ic(self.model)
+            #ic(self.model)
             print("Loaded existing model.")
             return True
         else:
@@ -49,15 +49,15 @@ class StockPricePredictor:
         """
         try:
             self.data = yf.download(self.stock_symbol, start=start_date, end=datetime.now())
-            ic(self.data)
-            ic(self.stock_symbol)
+            #ic(self.data)
+            #ic(self.stock_symbol)
             if self.data.empty:
                 print(f"No data fetched for {self.stock_symbol}")
                 return False
             print(f"Successfully downloaded data for {self.stock_symbol}")
             return True
         except Exception as e:
-            ic(str(e))
+            #ic(str(e))
             print(f"Error fetching data: {str(e)}")
             return False
 
@@ -68,7 +68,7 @@ class StockPricePredictor:
                 print("No data available to prepare.")
                 return
             self.scaled_data = self.scaler.fit_transform(self.data['Close'].values.reshape(-1, 1))
-            ic(self.scaled_data[:5])
+            #ic(self.scaled_data[:5])
             
             x_train = []
             y_train = []
@@ -81,8 +81,8 @@ class StockPricePredictor:
             self.y_train = np.array(y_train)
             self.x_train = np.reshape(self.x_train, 
                                     (self.x_train.shape[0], self.x_train.shape[1], 1))
-            ic(self.x_train)
-            ic(self.y_train)
+            #ic(self.x_train)
+            #ic(self.y_train)
             print("Training data prepared.")
         except Exception as e:
             print(f"Error preparing data for {self.stock_symbol}: {e}")
@@ -90,7 +90,7 @@ class StockPricePredictor:
            
     def build_model(self):
         """Build and compile the LSTM model."""
-        ic(self.x_train.shape[1])
+        #ic(self.x_train.shape[1])
 
         self.model = Sequential([
             LSTM(units=50, return_sequences=True, 
@@ -129,7 +129,7 @@ class StockPricePredictor:
                                epochs=epochs, batch_size=batch_size, 
                                validation_split=0.1,
                                verbose=1)
-        ic(history)
+        #ic(history)
 
         return history
         
@@ -158,13 +158,13 @@ class StockPricePredictor:
             price_change = actual_prediction - current_price
             percentage_change = (price_change / current_price) * 100
 
-            ic(last_60_days)
-            ic(next_day_input)
-            ic(prediction)
-            ic(actual_prediction)
-            ic(current_price)
-            ic(price_change)
-            ic(percentage_change)
+            #ic(last_60_days)
+            #ic(next_day_input)
+            #ic(prediction)
+            #ic(actual_prediction)
+            #ic(current_price)
+            #ic(price_change)
+            #ic(percentage_change)
 
             return actual_prediction, price_change, percentage_change
         except Exception as e:
