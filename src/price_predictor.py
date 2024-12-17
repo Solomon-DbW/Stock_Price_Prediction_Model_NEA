@@ -1,4 +1,5 @@
 import os
+from icecream import ic
 import numpy as np
 import pandas as pd
 import pickle
@@ -32,6 +33,7 @@ class StockPricePredictor:
     def load_model(self, model_path):
         if os.path.exists(model_path):
             self.model = tensorflow.keras.models.load_model(model_path)
+            ic(self.model)
             print("Loaded existing model.")
             return True
         else:
@@ -47,32 +49,49 @@ class StockPricePredictor:
         """
         try:
             self.data = yf.download(self.stock_symbol, start=start_date, end=datetime.now())
+            ic(self.data)
+            ic(self.stock_symbol)
+            if self.data.empty:
+                print(f"No data fetched for {self.stock_symbol}")
+                return False
             print(f"Successfully downloaded data for {self.stock_symbol}")
             return True
         except Exception as e:
-            print(f"Error fetching data: {e}")
+            ic(str(e))
+            print(f"Error fetching data: {str(e)}")
             return False
-            
+
     def prepare_data(self):
         """Prepare data for LSTM model."""
-        # Scale the closing prices
-        self.scaled_data = self.scaler.fit_transform(self.data['Close'].values.reshape(-1, 1))
-        
-        # Prepare training sequences
-        x_train = []
-        y_train = []
-        
-        for x in range(self.prediction_days, len(self.scaled_data)):
-            x_train.append(self.scaled_data[x-self.prediction_days:x, 0])
-            y_train.append(self.scaled_data[x, 0])
+        try:
+            if self.data is None or self.data.empty:
+                print("No data available to prepare.")
+                return
+            self.scaled_data = self.scaler.fit_transform(self.data['Close'].values.reshape(-1, 1))
+            ic(self.scaled_data[:5])
             
-        self.x_train = np.array(x_train)
-        self.y_train = np.array(y_train)
-        self.x_train = np.reshape(self.x_train, 
-                                (self.x_train.shape[0], self.x_train.shape[1], 1))
-        
+            x_train = []
+            y_train = []
+
+            for x in range(self.prediction_days, len(self.scaled_data)):
+                x_train.append(self.scaled_data[x-self.prediction_days:x, 0])
+                y_train.append(self.scaled_data[x, 0])
+
+            self.x_train = np.array(x_train)
+            self.y_train = np.array(y_train)
+            self.x_train = np.reshape(self.x_train, 
+                                    (self.x_train.shape[0], self.x_train.shape[1], 1))
+            ic(self.x_train)
+            ic(self.y_train)
+            print("Training data prepared.")
+        except Exception as e:
+            print(f"Error preparing data for {self.stock_symbol}: {e}")
+
+           
     def build_model(self):
         """Build and compile the LSTM model."""
+        ic(self.x_train.shape[1])
+
         self.model = Sequential([
             LSTM(units=50, return_sequences=True, 
                  input_shape=(self.x_train.shape[1], 1)),
@@ -110,110 +129,129 @@ class StockPricePredictor:
                                epochs=epochs, batch_size=batch_size, 
                                validation_split=0.1,
                                verbose=1)
-        
-        self.model.save(f"{self.stock_symbol}_model.keras")
+        ic(history)
 
         return history
         
+    def save_model(self, model_path: str):
+        self.model.save(model_path)
+
     def predict_next_day(self):
         """Predict the next day's closing price."""
-        # Get the last 60 days of data
-        last_60_days = self.scaled_data[-self.prediction_days:]
-        next_day_input = np.reshape(last_60_days, (1, self.prediction_days, 1))
-        
-        # Make prediction and inverse transform
-        prediction = self.model.predict(next_day_input)
-        actual_prediction = self.scaler.inverse_transform(prediction)[0][0]
-        
-        current_price = self.data['Close'].iloc[-1]
-        price_change = actual_prediction - current_price
-        percentage_change = (price_change / current_price) * 100
-
-        
-        return actual_prediction, price_change, percentage_change
-    
-    def evaluate_model(self):
-        """Evaluate model accuracy using recent predictions."""
-        # Use last 30 days for testing
-        test_start = len(self.data) - 30
-        test_data = self.scaled_data[test_start - self.prediction_days:]
-        
-        x_test = []
-        y_test = self.scaled_data[test_start:].reshape(-1)
-        
-        for x in range(self.prediction_days, len(test_data)):
-            x_test.append(test_data[x-self.prediction_days:x, 0])
+        try:
+            if self.scaled_data is None or len(self.scaled_data) < self.prediction_days:
+                print("Insufficient data to make a prediction.")
+                return None
             
-        x_test = np.array(x_test)
-        x_test = np.reshape(x_test, (x_test.shape[0], x_test.shape[1], 1))
-        
-        predictions = self.model.predict(x_test)
-        predictions = self.scaler.inverse_transform(predictions)
-        actual_values = self.scaler.inverse_transform([y_test])
-        
-        # Calculate metrics
-        mse = np.mean((predictions - actual_values.T) ** 2)
-        rmse = np.sqrt(mse)
-        mae = np.mean(np.abs(predictions - actual_values.T))
-        
-        return {
-            'mse': mse,
-            'rmse': rmse,
-            'mae': mae,
-            'predictions': predictions,
-            'actual_values': actual_values.T
-        }
+            last_60_days = self.scaled_data[-self.prediction_days:]
+            next_day_input = np.reshape(last_60_days, (1, self.prediction_days, 1))
+            
+            if self.model is None:
+                print("Model is not loaded or built.")
+                return None
+            
+            # Make prediction and inverse transform
+            prediction = self.model.predict(next_day_input)
+            actual_prediction = self.scaler.inverse_transform(prediction)[0][0]
+            
+            current_price = self.data['Close'].iloc[-1]
+            price_change = actual_prediction - current_price
+            percentage_change = (price_change / current_price) * 100
+
+            ic(last_60_days)
+            ic(next_day_input)
+            ic(prediction)
+            ic(actual_prediction)
+            ic(current_price)
+            ic(price_change)
+            ic(percentage_change)
+
+            return actual_prediction, price_change, percentage_change
+        except Exception as e:
+            print(f"Error predicting next day for {self.stock_symbol}: {e}")
+           
     
-    def plot_predictions(self, evaluation_results, save_path='prediction_plot.png'):
-        """
-        Plot actual vs predicted prices and save to file.
+    # def evaluate_model(self):
+    #     """evaluate model accuracy using recent predictions."""
+    #     # use last 30 days for testing
+    #     test_start = len(self.data) - 30
+    #     test_data = self.scaled_data[test_start - self.prediction_days:]
         
-        Args:
-            evaluation_results (dict): Dictionary containing actual_values and predictions
-            save_path (str): Path where to save the plot image file
-        """
-        plt.figure(figsize=(12, 6))
-        plt.plot(evaluation_results['actual_values'], 
-                label='Actual Prices', color='blue')
-        plt.plot(evaluation_results['predictions'], 
-                label='Predicted Prices', color='red')
-        plt.title(f'{self.stock_symbol} Stock Price Prediction Results')
-        plt.xlabel('Time (days)')
-        plt.ylabel('Stock Price')
-        plt.legend()
-        plt.grid(True)
+    #     x_test = []
+    #     y_test = self.scaled_data[test_start:].reshape(-1)
         
-        # Save the plot to file
-        plt.savefig(save_path, dpi=300, bbox_inches='tight')
-        plt.close()  # Close the figure to free memory
+    #     for x in range(self.prediction_days, len(test_data)):
+    #         x_test.append(test_data[x-self.prediction_days:x, 0])
+            
+    #     x_test = np.array(x_test)
+    #     x_test = np.reshape(x_test, (x_test.shape[0], x_test.shape[1], 1))
+        
+    #     predictions = self.model.predict(x_test)
+    #     predictions = self.scaler.inverse_transform(predictions)
+    #     actual_values = self.scaler.inverse_transform([y_test])
+        
+    #     # calculate metrics
+    #     mse = np.mean((predictions - actual_values.t) ** 2)
+    #     rmse = np.sqrt(mse)
+    #     mae = np.mean(np.abs(predictions - actual_values.t))
+        
+    #     return {
+    #         'mse': mse,
+    #         'rmse': rmse,
+    #         'mae': mae,
+    #         'predictions': predictions,
+    #         'actual_values': actual_values.t
+    #     }
+    
+    # def plot_predictions(self, evaluation_results, save_path='prediction_plot.png'):
+    #     """
+    #     plot actual vs predicted prices and save to file.
+        
+    #     args:
+    #         evaluation_results (dict): dictionary containing actual_values and predictions
+    #         save_path (str): path where to save the plot image file
+    #     """
+    #     plt.figure(figsize=(12, 6))
+    #     plt.plot(evaluation_results['actual_values'], 
+    #             label='actual prices', color='blue')
+    #     plt.plot(evaluation_results['predictions'], 
+    #             label='predicted prices', color='red')
+    #     plt.title(f'{self.stock_symbol} stock price prediction results')
+    #     plt.xlabel('time (days)')
+    #     plt.ylabel('stock price')
+    #     plt.legend()
+    #     plt.grid(true)
+        
+    #     # save the plot to file
+    #     plt.savefig(save_path, dpi=300, bbox_inches='tight')
+    #     plt.close()  # close the figure to free memory
        
-    def plot_training_history(self, history):
-        """Plot training history."""
-        plt.figure(figsize=(12, 6))
-        plt.plot(history.history['loss'], label='Training Loss', color='blue')
-        plt.plot(history.history['val_loss'], label='Validation Loss', color='red')
-        plt.title('Model Training History')
-        plt.xlabel('Epoch')
-        plt.ylabel('Loss')
-        plt.legend()
-        plt.grid(True)
-        plt.show()
+    # def plot_training_history(self, history):
+    #     """plot training history."""
+    #     plt.figure(figsize=(12, 6))
+    #     plt.plot(history.history['loss'], label='training loss', color='blue')
+    #     plt.plot(history.history['val_loss'], label='validation loss', color='red')
+    #     plt.title('model training history')
+    #     plt.xlabel('epoch')
+    #     plt.ylabel('loss')
+    #     plt.legend()
+    #     plt.grid(true)
+    #     plt.show()
 
 
-# predictor = StockPricePredictor(stock_symbol="AAPL")
+# predictor = stockpricepredictor(stock_symbol="aapl")
 
-# # Fetch the latest data
-# if predictor.fetch_data(start_date='2023-01-01'):  # Adjust start_date as needed
+# # fetch the latest data
+# if predictor.fetch_data(start_date='2023-01-01'):  # adjust start_date as needed
 #     predictor.prepare_data()
 #     predictor.build_model()
 #     predictor.train_model()
 
-# # Predict when the price will increase
+# # predict when the price will increase
 # increase_date, predicted_price, price_change, percentage_change = predictor.predict_increase_date(max_days=60)
 
 # if increase_date:
-#     print(f"Price is expected to increase on {increase_date.date()} to {predicted_price:.2f}")
-#     print(f"Change: {price_change:.2f} ({percentage_change:.2f}%)")
+#     print(f"price is expected to increase on {increase_date.date()} to {predicted_price:.2f}")
+#     print(f"change: {price_change:.2f} ({percentage_change:.2f}%)")
 # else:
 #     print("No price increase expected within the specified future days.")
-

@@ -1,4 +1,5 @@
 import os
+from icecream import ic
 import customtkinter as ctk
 import tkinter as tk
 from tkinter import messagebox
@@ -51,7 +52,7 @@ def view_available_stocks_predictions(StockButton, logger, homeroot, home):
 
             predictor = StockPricePredictor(ticker)
 
-            model_path = f"{ticker}_model.keras"
+            model_path = f"Models/{ticker}_model.keras"
             if os.path.exists(model_path):
                 status_label.configure(text=f"Loading existing model for {ticker}...")
                 predictor.load_model(model_path)
@@ -59,29 +60,48 @@ def view_available_stocks_predictions(StockButton, logger, homeroot, home):
                 # Train a new model
                 status_label.configure(text=f"Training new model for {ticker}...")
                 if predictor.fetch_data():
+                    print(predictor.data.head())
+
                     predictor.prepare_data()
-                    predictor.build_model()
-                    predictor.train_model(epochs=10, batch_size=32)
+                    # predictor.build_model()
+                    predictor.build_or_load_model("Models/WMT_model.keras")
+                    history = predictor.train_model(epochs=10, batch_size=32)
+
+                    # Ensure the Models directory exists
+                    if not os.path.exists("Models"):
+                        os.makedirs("Models")
+
+                    predictor.save_model(model_path)  # Save the newly trained model
                 else:
                     raise Exception(f"Failed to fetch data for {ticker}")
 
-            if predictor.fetch_data():
-                predictor.prepare_data()
-                predictor.build_model()
-                predictor.train_model(epochs=10, batch_size=32)
-                next_price, price_change, percentage_change = predictor.predict_next_day()
-                next_price, price_change, percentage_change = next_price.item(), price_change.item(), percentage_change.item()
-                status_label.configure(text=f"Predicted Price: £{next_price:.2f} \n"
-                                       f"Change in price: £{price_change:.2f} \n"
-                                       f"Percentage change: {percentage_change:.2f}%")
+            # Predict next day's price
+            result = predictor.predict_next_day()
+            if result:
+                next_price, price_change, percentage_change = result
+                # next_price, price_change, percentage_change = (
+                #     next_price.item(),
+                #     price_change.item(),
+                #     percentage_change.item(),
+                # )
+
+                ic(next_price)
+                ic(price_change)
+                ic(percentage_change)
+
+                status_label.configure(text=f"Predicted Price: £{float(next_price):.2f} \n"
+                                       f"Change in price: £{float(price_change):.2f} \n"
+                                       f"Percentage change: {float(percentage_change):.2f}%")
 
 
                 messagebox.showinfo(f"Prediction for {ticker} completed",
-                                    f"""Predicted Price: £{next_price:.2f} 
-Change in price: £{price_change:.2f}
-Percentage change: {percentage_change:.2f}%""")
+                                    f"""Predicted Price: £{float(next_price):.2f} 
+Change in price: £{float(price_change):.2f}
+Percentage change: {float(percentage_change):.2f}%""")
+
             else:
-                status_label.configure(text=f"Failed to fetch data for {ticker}")
+                print("Prediction failed")
+
         except Exception as e:
             logger.error(f"Error processing {ticker}: {str(e)}")
             status_label.configure(text=f"Error: {str(e)}")
