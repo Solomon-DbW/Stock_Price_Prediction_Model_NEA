@@ -1,3 +1,4 @@
+from tkinter.ttk import Progressbar
 import customtkinter as ctk
 import yfinance as yf
 from datetime import datetime, timedelta
@@ -112,7 +113,7 @@ class OwnedStocksManager:
             f"Amount invested: £{float(amount_invested):.2f}",
             f"Number of shares: {number_of_shares}",
             f"Date of purchase: {date_purchased}",
-            f"Current Price: £{float(current_price):.2f}",
+            # f"Current Price: £{float(current_price):.2f}",
             f"Current Investment Value: £{float(current_investment_value):.2f}",
             f"Gain/Loss: £{float(gain_loss):.2f} ({float(gain_loss_percentage):.2f}%)"
         ]
@@ -211,38 +212,43 @@ class OwnedStocksManager:
         clear_btn.pack(pady=(0, 20))
        
 
-
     def view_all_owned_stocks(self):
         try:
+            progress = Progressbar(self.owned_stocks_frame, mode='indeterminate')
+            progress.pack(pady=10)
+            progress.start()
+
+            self.owned_stocks_frame.update_idletasks()
+
             for widget in self.owned_stocks_frame.winfo_children():
                 widget.destroy()
-
-            stocks = session.query(OwnedStock).join(User).all()
-            
-            if not stocks:
-                no_owned_stocks_label = ctk.CTkLabel(self.owned_stocks_frame, text="No stocks found", font=("Arial", 14))
-                no_owned_stocks_label.pack(pady=20)
-                return
 
             with open("user_id.txt", "r") as f:
                 current_user_id = f.readline().strip()
 
-            for stock in stocks:
-                stock_data = (
-                    # stock.userid,
-                    stock.stockid,
-                    stock.stock_ticker,
-                    stock.date_purchased,
-                    stock.amount_invested,
-                    stock.number_of_shares
-                )
-                
-                # if account.userid == User.get_user_id(self.current_username):
-                if str(stock.userid) == current_user_id:
+            stocks = session.query(OwnedStock).filter_by(userid=current_user_id).all()
+
+            if not stocks:
+                no_owned_stocks_label = ctk.CTkLabel(self.owned_stocks_frame, text="No stocks found", font=("Arial", 14))
+                no_owned_stocks_label.pack(pady=20)
+            else:
+                for stock in stocks:
+                    stock_data = (
+                        stock.stockid,
+                        stock.stock_ticker,
+                        stock.date_purchased,
+                        stock.amount_invested,
+                        stock.number_of_shares
+                    )
                     self.create_owned_stock_frame(self.owned_stocks_frame, stock_data)
 
         except SQLAlchemyError as e:
-            messagebox.showerror("Database Error", f"Failed to retrieve accounts: {str(e)}")
+            messagebox.showerror("Database Error", f"Failed to retrieve stocks: {str(e)}")
+        finally:
+            progress.stop()
+            progress.destroy()
+
+
 
     def remove_stock(self, stock_id: int):
         if messagebox.askyesno("Confirm Delete", "Are you sure you want to delete this stock?"):
