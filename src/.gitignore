@@ -4,3 +4,9 @@
 /lib64/
 /__pycache__/
 /share/
+Price Predictor.ipynb
+AAPL_model.keras
+MSFT_model.keras
+NVDA_model.keras
+database_structure.txt
+
