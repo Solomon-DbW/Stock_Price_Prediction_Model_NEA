@@ -8,6 +8,7 @@ from yfinance import ticker
 from database_manager import OwnedStock, User, session
 from sqlalchemy.exc import SQLAlchemyError
 from database_manager import OwnedStock
+import pandas as pd
 
 root = ctk.CTk()
 root.title("Owned Stocks")
@@ -103,14 +104,14 @@ class OwnedStocksManager:
 
         # Calculate the gain/loss
         initial_investment_value = amount_invested
-        current_investment_value = current_price * number_of_shares
+        current_investment_value = float(current_price.iloc[0]) * number_of_shares if isinstance(current_price, pd.Series) else current_price * number_of_shares
         gain_loss = current_investment_value - initial_investment_value
         gain_loss_percentage = (gain_loss / initial_investment_value) * 100
 
         labels = [
             f"Stock ID: {stock_id}",
             f"Stock Ticker: {stock_ticker}",
-            f"Amount invested: £{float(amount_invested):.2f}",
+            f"Amount invested: £{amount_invested:.2f}",
             f"Number of shares: {number_of_shares}",
             f"Date of purchase: {date_purchased}",
             # f"Current Price: £{float(current_price):.2f}",
@@ -214,9 +215,9 @@ class OwnedStocksManager:
 
     def view_all_owned_stocks(self):
         try:
-            progress = Progressbar(self.owned_stocks_frame, mode='indeterminate')
-            progress.pack(pady=10)
-            progress.start()
+            # progress = Progressbar(self.owned_stocks_frame, mode='indeterminate')
+            # progress.pack(pady=10)
+            # progress.start()
 
             self.owned_stocks_frame.update_idletasks()
 
@@ -244,9 +245,9 @@ class OwnedStocksManager:
 
         except SQLAlchemyError as e:
             messagebox.showerror("Database Error", f"Failed to retrieve stocks: {str(e)}")
-        finally:
-            progress.stop()
-            progress.destroy()
+        # finally:
+            # progress.stop()
+            # progress.destroy()
 
 
 
